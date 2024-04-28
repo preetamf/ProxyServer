@@ -20,9 +20,10 @@ app.get("/", (req, res)=>{
 
 //routes import
 // import userRouter from './routes/user.routes.js'
+import userRouter from "./routes/user.route"
 
 //routes declaration
-// app.use("/api/v1/users", userRouter)
+app.use("/api/v1/users", userRouter)
 
 
 // http://localhost:8000/api/v1/users/register
