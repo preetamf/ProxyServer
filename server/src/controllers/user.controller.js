@@ -4,6 +4,22 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 
+//Generate Tokens
+const generateAccessAndRefereshTokens = async(userId) =>{
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return {accessToken, refreshToken}
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+    }
+}
+
 //signup
 const signUp = asyncHandler(async (req, res) => {
     const { username, email, password, countryCode, phoneNumber } = req.body;
@@ -147,7 +163,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
-// Change Password
+//Change Password
 const changeCurrentPassword = asyncHandler(async(req, res) => {
     const {oldPassword, newPassword} = req.body
 
@@ -172,4 +188,5 @@ export {
     login,
     logout,
     refreshAccessToken,
+    changeCurrentPassword,
 }
