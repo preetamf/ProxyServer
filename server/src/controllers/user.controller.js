@@ -5,7 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 
 //Generate Tokens
-const generateAccessAndRefereshTokens = async(userId) =>{
+const generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
@@ -14,7 +14,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
 
-        return {accessToken, refreshToken}
+        return { accessToken, refreshToken }
     } catch (error) {
         throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }
@@ -23,11 +23,14 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 //signup
 const signUp = asyncHandler(async (req, res) => {
     const { username, email, password, countryCode, phoneNumber } = req.body;
-
     if (
-        [username, email, password].some((field) => field?.trim() === "")
+        [username, email, password, countryCode].some((field) => typeof field !== 'string' || field.trim() === "")
     ) {
-        throw new ApiError(400, "All feilds are required")
+        throw new ApiError(400, "All fields are required");
+    }
+
+    if (!phoneNumber) {
+        throw new ApiError(400, "Phone Number is required");
     }
 
     const existingUser = await User.findOne({
@@ -39,7 +42,7 @@ const signUp = asyncHandler(async (req, res) => {
     }
 
     const user = await User.create({
-        username: username.toLowerCase(),
+        username,
         email,
         password,
         countryCode,
@@ -69,6 +72,7 @@ const login = asyncHandler(async (req, res) => {
     if (!user) throw new ApiError(404, "user does not exist - signup first")
 
     const isPasswordValid = await user.isPasswordCorrect(password)
+    console.log("isPasswordvalid: ", isPasswordValid)
     if (!isPasswordValid) throw new ApiError(401, "WRONG PASSWORD");
 
     //tokens
@@ -164,8 +168,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 })
 
 //Change Password
-const changeCurrentPassword = asyncHandler(async(req, res) => {
-    const {oldPassword, newPassword} = req.body
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body
 
     const user = await User.findById(req.user?._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
@@ -175,11 +179,11 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
     }
 
     user.password = newPassword
-    await user.save({validateBeforeSave: false})
+    await user.save({ validateBeforeSave: false })
 
     return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Password changed successfully"))
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed successfully"))
 })
 
 

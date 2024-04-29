@@ -30,7 +30,7 @@ const userSchema = new Schema(
             description: 'User\'s country code (ISO 3166-1 alpha-2)'
         },
         phoneNumber: {
-            type: String,
+            type: Number,
             minlength: 9,
             maxlength: 15,
             required: true,
@@ -45,7 +45,6 @@ const userSchema = new Schema(
         },
         refreshToken: {
             type: String,
-            readOnly: true,
             description: 'User\'s refresh token (for access token renewal)'
         }
     },
@@ -68,7 +67,7 @@ userSchema.pre("save", async function (next) {
 })
 
 //password validation after hashing
-userSchema.method.isPasswordCorrect = async function (password) {
+userSchema.methods.isPasswordCorrect = async function (password) { 
     try {
         return await bcrypt.compare(password, this.password)
     } catch (error) {
@@ -77,7 +76,7 @@ userSchema.method.isPasswordCorrect = async function (password) {
 }
 
 //Generate token
-userSchema.method.generateAccessToken = function () {
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         //payload
         {

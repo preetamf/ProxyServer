@@ -1,5 +1,6 @@
 import { Router } from "express"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 import {
     signUp,
     login,
@@ -10,7 +11,7 @@ import {
 
 const router = Router()
 
-router.route("/signup").post(signUp);
+router.route("/signup").post( upload.single('file'), signUp );
 router.route("/login").post(login);
 
 //secured routes
