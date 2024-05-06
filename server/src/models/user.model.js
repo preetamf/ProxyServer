@@ -27,7 +27,7 @@ const userSchema = new Schema(
             type: String,
             pattern: /^[A-Z]{2}$/,
             required: true,
-            description: 'User\'s country code (ISO 3166-1 alpha-2)'
+            description: 'User\'s country code'
         },
         phoneNumber: {
             type: Number,

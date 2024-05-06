@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+//Custom hook for storing user data in local storage
 export const useLocalStorage = (keyName, defaultValue) => {
   const [storedValue, setStoredValue] = useState(() => {
     try {

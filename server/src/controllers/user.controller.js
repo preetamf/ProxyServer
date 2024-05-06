@@ -72,8 +72,10 @@ const login = asyncHandler(async (req, res) => {
     if (!user) throw new ApiError(404, "user does not exist - signup first")
 
     const isPasswordValid = await user.isPasswordCorrect(password)
-    console.log("isPasswordvalid: ", isPasswordValid)
-    if (!isPasswordValid) throw new ApiError(401, "WRONG PASSWORD");
+    if (!isPasswordValid) {
+        console.log("isPasswordvalid: ", isPasswordValid)
+        throw new ApiError(401, "WRONG PASSWORD");
+    }
 
     //tokens
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)

@@ -13,7 +13,7 @@ function App() {
   return (
     <div className='flex h-screen'>
       <Navbar />
-      <div className='flex-grow h-screen p-2 overflow-y-hidden flex flex-col'>
+      <div className='flex-grow h-screen p-1 overflow-y-hidden flex flex-col'>
         <Header />
         <Outlet />
       </div>

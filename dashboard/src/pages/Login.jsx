@@ -1,31 +1,47 @@
 import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 import { useAuth } from '../utils/useAuth';
+import axios from 'axios';
 
 function Login() {
+    const [loginData, setLoginData] = useState({
+        email: "",
+        password: ""
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const [userEmail, setUserEmail] = useState("");
-    const [userPassword, setUserPassword] = useState("");
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setLoginData({
+            ...loginData,
+            [name]: value
+        });
+    };
+
     const { login } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        // Here you would usually send a request to your backend to authenticate the user
-        // For the sake of this example, we're using a mock authentication
-        if (userEmail === "user@gmail.com" && userPassword === "abcd") {
-            // Replace with actual authentication logic
-            await login({ userEmail });
-        } else {
-            alert("Invalid username or password");
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post('http://localhost:8000/api/v1/users/login', loginData);
+            console.log("login response: ", response)
+            const user  = response.data.data.user;
+            await login(user );
+        } catch (error) {
+            console.error('Error logging in:', error);
+            setError("Invalid email or password");
+        } finally {
+            setLoading(false);
         }
     };
 
-
-
-
+    const isValidForm = loginData.email.trim() !== '' && loginData.password.trim() !== '';
 
     return (
-
         <div className="flex flex-col md:flex-row h-screen">
             {/* Form  */}
             <div className="md:w-1/2 relative">
@@ -45,10 +61,11 @@ function Login() {
                                     <input
                                         id='email'
                                         type="email"
-                                        value={userEmail}
+                                        name="email"
+                                        value={loginData.email}
                                         className="w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
                                         placeholder="Enter email"
-                                        onChange={(e) => setUserEmail(e.target.value)}
+                                        onChange={handleChange}
                                     />
                                     <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
                                         <svg
@@ -74,10 +91,11 @@ function Login() {
                                     <input
                                         id='password'
                                         type="password"
-                                        value={userPassword}
+                                        name='password'
+                                        value={loginData.password}
                                         className="w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
                                         placeholder="Enter password"
-                                        onChange={(e) => setUserPassword(e.target.value)}
+                                        onChange={handleChange}
                                     />
                                     <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
                                         <svg
@@ -103,6 +121,7 @@ function Login() {
                                     </span>
                                 </div>
                             </div>
+                            {error && <p className="text-red-500 text-sm">{error}</p>}
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-gray-500 px-1">
                                     No account?{' '}
@@ -112,9 +131,10 @@ function Login() {
                                 </p>
                                 <button
                                     type="submit"
-                                    className="inline-block rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white"
+                                    className={`inline-block rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white ${!isValidForm || loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={!isValidForm || loading}
                                 >
-                                    Sign in
+                                    {loading ? 'Loading...' : 'Sign in'}
                                 </button>
                             </div>
                         </form>
@@ -122,16 +142,15 @@ function Login() {
                 </div>
             </div>
             {/* image */}
-            <div class="max-sm:hidden md:w-1/2 overflow-hidden">
+            <div className="max-sm:hidden md:w-1/2 overflow-hidden">
                 <img
                     alt=""
                     src="https://images.unsplash.com/photo-1605106702734-205df224ecce?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
-                    class="w-full h-full object-cover"
+                    className="w-full h-full object-cover"
                 />
             </div>
         </div>
-
     )
 }
 
-export default Login
+export default Login;

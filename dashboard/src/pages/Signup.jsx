@@ -1,7 +1,64 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, Navigate, useNavigate  } from 'react-router-dom';
+import { countryCode } from '../utils/CountryCode';
+import Select from "react-select";
+import axios from 'axios';
 
 const Signup = () => {
+    const navigate = useNavigate();
+
+
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        passwordConfirmation: '',
+        countryCode: 'IN',
+        phoneNumber: ''
+    });
+
+    const [confirmTyping, setConfirmTyping] = useState(false);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+
+        // Check if the change occurred in the Password Confirmation field
+        if (name === 'passwordConfirmation') {
+            setConfirmTyping(true);
+        }
+    };
+
+    const handleSelectChange = (selectedOption) => {
+        setFormData({
+            ...formData,
+            countryCode: selectedOption.value
+        });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (formData.password !== formData.passwordConfirmation) {
+            alert('Passwords do not match');
+            console.error('Passwords do not match');
+            return;
+        }
+        
+        axios.post('http://localhost:8000/api/v1/users/signup', formData)
+            .then(response => {
+                // Handle the response from the server (success or error)
+                console.log('Signup response:', response.data);
+                // Navigate to home page after successful signup
+                navigate("/", { replace: true });
+            })
+            .catch(error => {
+                console.error('Signup error:', error);
+            });
+    };
+
     return (
         <section className="hidden-scrollbar bg-white dark:bg-gray-900 overflow-y-hidden">
             <div className="lg:grid lg:min-h-screen lg:grid-cols-7">
@@ -27,39 +84,24 @@ const Signup = () => {
                             quibusdam aperiam voluptatum.
                         </p>
 
-                        <form action="#" className="mt-4 grid grid-cols-6 gap-3 p-2">
-                            <div className="col-span-6 sm:col-span-3">
+                        <form onSubmit={handleSubmit} className="mt-4 grid grid-cols-6 gap-3 p-2">
+                            <div className="col-span-6 sm:col-span-6">
                                 <label
-                                    htmlFor="FirstName"
+                                    htmlFor="username"
                                     className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                                 >
-                                    First Name
+                                    User Full Name
                                 </label>
 
                                 <input
                                     type="text"
-                                    id="FirstName"
-                                    name="first_name"
+                                    id="username"
+                                    name="username"
+                                    value={formData.username}
+                                    onChange={handleChange}
                                     className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                 />
                             </div>
-
-                            <div className="col-span-6 sm:col-span-3">
-                                <label
-                                    htmlFor="LastName"
-                                    className="block text-sm font-medium text-gray-700 dark:text-gray-200"
-                                >
-                                    Last Name
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="LastName"
-                                    name="last_name"
-                                    className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                />
-                            </div>
-
                             <div className="col-span-6">
                                 <label htmlFor="Email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                                     Email
@@ -69,6 +111,40 @@ const Signup = () => {
                                     type="email"
                                     id="Email"
                                     name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                />
+                            </div>
+
+                            {/* Repeat the same pattern for last name, email, password, password confirmation */}
+
+                            <div className="col-span-6 sm:col-span-3">
+                                <label htmlFor="CountryCode" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Country Code
+                                </label>
+                                <Select
+                                    id="CountryCode"
+                                    name="countryCode"
+                                    className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                    value={countryCode.find(option => option.value === formData.countryCode)}
+                                    onChange={handleSelectChange}
+                                    options={countryCode.map(country => ({
+                                        value: country.code,
+                                        label: `${country.code} (${country.name})`
+                                    }))}
+                                />
+                            </div>
+                            <div className="col-span-6 sm:col-span-3">
+                                <label htmlFor="PhoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="text"
+                                    id="PhoneNumber"
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
+                                    onChange={handleChange}
                                     className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                 />
                             </div>
@@ -85,6 +161,8 @@ const Signup = () => {
                                     type="password"
                                     id="Password"
                                     name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
                                     className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                 />
                             </div>
@@ -100,24 +178,14 @@ const Signup = () => {
                                 <input
                                     type="password"
                                     id="PasswordConfirmation"
-                                    name="password_confirmation"
-                                    className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                    name="passwordConfirmation"
+                                    value={formData.passwordConfirmation}
+                                    onChange={handleChange}
+                                    className={`mt-1 w-full rounded-md border ${confirmTyping && formData.password !== formData.passwordConfirmation ? 'border-red-500' : 'border-gray-200'} bg-white text-sm text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-200`}
                                 />
-                            </div>
-
-                            <div className="col-span-6">
-                                <label htmlFor="MarketingAccept" className="flex gap-4">
-                                    <input
-                                        type="checkbox"
-                                        id="MarketingAccept"
-                                        name="marketing_accept"
-                                        className="size-5 rounded-md border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:focus:ring-offset-gray-900"
-                                    />
-
-                                    <span className="text-sm text-gray-700 dark:text-gray-200">
-                                        I want to receive emails about events, product updates and company announcements.
-                                    </span>
-                                </label>
+                                {confirmTyping && formData.password !== formData.passwordConfirmation && (
+                                    <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+                                )}
                             </div>
 
                             <div className="col-span-6">
@@ -133,6 +201,7 @@ const Signup = () => {
 
                             <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
                                 <button
+                                    type="submit"
                                     className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500 dark:hover:bg-blue-700 dark:hover:text-white"
                                 >
                                     Create an account
@@ -141,7 +210,7 @@ const Signup = () => {
                                 <p className="mt-4 text-sm text-gray-500 sm:mt-0 dark:text-gray-400">
                                     Already have an account?
                                     <a href="#" >Log in</a>.
-                                    <Link className="underline text-blue-500 dark:text-gray-200 px-[3px]"  to="/">
+                                    <Link className="underline text-blue-500 dark:text-gray-200 px-[3px]" to="/">
                                         Login
                                     </Link>
                                 </p>
@@ -154,4 +223,4 @@ const Signup = () => {
     )
 }
 
-export default Signup
+export default Signup;

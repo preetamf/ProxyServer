@@ -1,15 +1,19 @@
 import { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage"; //custom hook to save user state to local browser if page refreshed
-const AuthContext = createContext();
+const AuthContext = createContext(); //context Api
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useLocalStorage("user", null); //null will store users email
+  const [user, setUser] = useLocalStorage("user", null); //null will store users data
   const navigate = useNavigate();
 
   // call this function when you want to authenticate the user
   const login = async (data) => {
+    if(!data) {
+      navigate("/signup")
+    }
     setUser(data);
+    console.log("context user data", user)
     navigate("/dashboard");
   };
 
