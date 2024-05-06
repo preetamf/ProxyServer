@@ -1,5 +1,6 @@
 import React from 'react'
 import { useAuth } from '../utils/useAuth'
+import { Link, NavLink } from 'react-router-dom';
 
 
 const Navbar = () => {
@@ -14,10 +15,10 @@ const Navbar = () => {
         <div className="flex flex-col justify-between h-screen overflow-y-auto  w-64  border-e bg-white p-1">
 
             <div className="px-4 py-6">
-                <span className="grid ml-6 h-10 w-32 place-content-center rounded-lg bg-gray-100 text-sm font-bold text-gray-900">APPEXIO PROXY</span>
+                <span className="grid ml-6 h-10 w-32 place-content-center rounded-lg bg-gray-100 text-sm font-bold text-indigo-600">APPEXIO PROXY</span>
                 <ul className="mt-6 space-y-1">
                     <li>
-                        <a href="#" className="block rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">Dashboard</a>
+                        <Link to="/dashboard" className="block rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">Dashboard</Link>
                     </li>
 
                     <li>
@@ -42,12 +43,13 @@ const Navbar = () => {
 
                             <ul className="mt-2 space-y-1 px-4">
                                 <li>
-                                    <a
-                                        href="#"
+                                    <NavLink
+                                        to="/dashboard/pricing"
                                         className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                        // activeClassName="text-gray-900" // Optional: If you want to apply a different style when the link is active
                                     >
                                         Pricing
-                                    </a>
+                                    </NavLink>
                                 </li>
 
                                 <li>
@@ -130,7 +132,7 @@ const Navbar = () => {
                 </ul>
             </div>
 
-            
+
         </div>
     )
 }

@@ -11,7 +11,7 @@ const Header = () => {
       <div className="mx-auto max-w-screen-xl px-2 py-1 sm:px-2 sm:py-1 lg:px-2">
         <div className="sm:flex sm:items-center sm:justify-between p-1">
           <div className="text-center sm:text-left">
-            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Welcome Back, {user.username}!</h1>
+            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Welcome Back, <span className='text-indigo-600'>{user.username}!</span></h1>
             <p className="mt-1.5 text-sm text-gray-500">Let's explore with no restrictions! </p>
           </div>
 
