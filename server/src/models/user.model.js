@@ -46,6 +46,10 @@ const userSchema = new Schema(
         refreshToken: {
             type: String,
             description: 'User\'s refresh token (for access token renewal)'
+        },
+        subuserId: {
+            type: Number,
+            description: 'User\'s subuser id'
         }
     },
     {

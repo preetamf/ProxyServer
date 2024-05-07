@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import axios from "axios"
 import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
@@ -49,7 +50,39 @@ const signUp = asyncHandler(async (req, res) => {
         phoneNumber
     })
 
+    // Handle SubUser Creation
+
+    try {
+        const subUserPayload = {
+            label: user._id, // Using the created user's ID as the label
+            sticky_range: {
+                start: 11000,
+                end: 20000
+            },
+            threads: 100
+        };
+
+        // Make request to third-party API to create subuser
+        const subUserResponse = await axios.post('https://api.dataimpulse.com/reseller/sub-user/create', subUserPayload, {
+            headers: {
+                'Authorization': `Bearer ${process.env.DATAIMPULSE_TOKEN}`
+            }
+        });
+
+        console.log('Subuser created successfully:', subUserResponse.data);
+
+        // Update user document with the subuser ID
+        await User.findByIdAndUpdate(user._id, { subuserId: subUserResponse.data.id });
+
+    } catch (error) {
+        // Handle error when calling third-party API
+        console.error("Error creating sub-user, re-check token validity: ", error);
+        //handle this error according to your application's logic
+    }
+
+    //fetch created user details to send response
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
+    console.log("new user: ", createdUser)
 
     if (!createdUser) throw new ApiError(500, "internal DB error while signing user");
 
