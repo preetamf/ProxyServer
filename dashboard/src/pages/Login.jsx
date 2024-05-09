@@ -28,7 +28,7 @@ function Login() {
 
         try {
             const response = await axios.post('http://localhost:8000/api/v1/users/login', loginData);
-            console.log("login response: ", response)
+            // console.log("login response: ", response)
             const user  = response.data.data.user;
             await login(user );
         } catch (error) {

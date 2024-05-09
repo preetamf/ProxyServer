@@ -22,7 +22,6 @@ app.get("/", (req, res)=>{
 });
 
 //routes import
-// import userRouter from './routes/user.routes.js'
 import userRouter from "./routes/user.route.js"
 
 //routes declaration

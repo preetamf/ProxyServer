@@ -51,7 +51,6 @@ const signUp = asyncHandler(async (req, res) => {
     })
 
     // Handle SubUser Creation
-
     try {
         const subUserPayload = {
             label: user._id, // Using the created user's ID as the label
@@ -102,6 +101,7 @@ const login = asyncHandler(async (req, res) => {
     const user = await User.findOne({
         $or: [{ username }, { email }]
     })
+
     if (!user) throw new ApiError(404, "user does not exist - signup first")
 
     const isPasswordValid = await user.isPasswordCorrect(password)
@@ -110,8 +110,19 @@ const login = asyncHandler(async (req, res) => {
         throw new ApiError(401, "WRONG PASSWORD");
     }
 
-    //tokens
+    //Generate User's tokens
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id)
+
+    //Third Party Token (dataimpulse)
+    const thirdPartyApiToken = await axios.post('https://api.dataimpulse.com/reseller/user/token/get',
+        {
+            login: `${process.env.TOKEN_LOGIN_EMAIL}`,
+            password: `${process.env.TOKEN_LOGIN_PASSWORD}`
+        }
+    );
+
+    const dataimpulseToken = thirdPartyApiToken.data.token; // Extract the token from the response
+
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
@@ -120,6 +131,9 @@ const login = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true
     }
+
+    // Set the third-party token in the response headers
+    res.setHeader('X-Data-Impulse-Token', dataimpulseToken);
 
     return res
         .status(200)
