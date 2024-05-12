@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import axios from "axios"
+import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
@@ -21,7 +22,7 @@ const generateAccessAndRefereshTokens = async (userId) => {
     }
 }
 
-//signup
+//1.signup
 const signUp = asyncHandler(async (req, res) => {
     const { username, email, password, countryCode, phoneNumber } = req.body;
     if (
@@ -76,6 +77,7 @@ const signUp = asyncHandler(async (req, res) => {
     } catch (error) {
         // Handle error when calling third-party API
         console.error("Error creating sub-user, re-check token validity: ", error);
+        throw new ApiError(400, "Error creating sub-user, re-check token validity")
         //handle this error according to your application's logic
     }
 
@@ -90,7 +92,7 @@ const signUp = asyncHandler(async (req, res) => {
     )
 })
 
-//login
+//2.login
 const login = asyncHandler(async (req, res) => {
     const { email, username, password } = req.body;
 
@@ -148,7 +150,7 @@ const login = asyncHandler(async (req, res) => {
         )
 })
 
-//logout
+//3.logout
 const logout = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
@@ -174,7 +176,7 @@ const logout = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
-//Refresh Access Token
+//4.Refresh Access Token
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
@@ -216,7 +218,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
-//Change Password
+//5.Change Password
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body
 
@@ -235,6 +237,110 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Password changed successfully"))
 })
 
+//6. Updating sub-user
+const updateSubuser = asyncHandler(async (req, res) => {
+    const headerToken = req.header("Authorization")?.replace("Bearer ", "")
+
+    const { threads, label, sticky_range } = req.body
+
+    const incomingAccessToken = req.cookies.accessToken
+
+    if (!incomingAccessToken || !headerToken) {
+        throw new ApiError(400, "unauthorized request: Token are required");
+    }
+
+
+    const decodedToken = jwt.verify(
+        incomingAccessToken,
+        process.env.ACCESS_TOKEN_SECRET
+    )
+
+    const user = await User.findById(decodedToken?._id)
+
+    if (!user) throw new ApiError(401, "Invalid acccess token");
+
+    let updatedSubUser;
+
+    //third party api call for updating sub user
+    try {
+        const subUserPayload = {
+            "subuser_id": user.subuserId,
+            "threads": threads
+        };
+
+        const updateSubuserResponse = await axios.post('https://api.dataimpulse.com/reseller/sub-user/update', subUserPayload, {
+            headers: {
+                'Authorization': `Bearer ${headerToken}`
+            }
+        });
+
+        // console.log("update subuser:", updateSubuserResponse.data)
+
+        updatedSubUser = updateSubuserResponse.data;
+
+    } catch (error) {
+        console.log("sub-user update error: " + error.message)
+        throw new ApiError(500, "Third Party Server Error while updating sub-user")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, updatedSubUser, "sub-user updated successfully")
+    )
+
+})
+
+//7. usage-stat - Details 
+const usageStatDetails = asyncHandler(async (req, res) => {
+    const headerToken = req.header('Authorization')?.replace("Bearer ", "")
+
+    console.log("header: ", headerToken)
+
+    const incomingAccessToken = req.cookies.accessToken
+    console.log("accesstoken: ", req.cookies)
+
+    if (!incomingAccessToken || !headerToken) {
+        throw new ApiError(400, "unauthorized request: Token are required");
+    }
+
+    const decodedToken = jwt.verify(
+        incomingAccessToken,
+        process.env.ACCESS_TOKEN_SECRET
+    )
+
+    const user = await User.findById(decodedToken?._id)
+    console.log("user: ", user.subuserId)
+
+    if (!user) throw new ApiError(401, "Invalid acccess token");
+
+
+    let usageDetails;
+    //third party api call for usage-stat - Details 
+    try {
+
+        const usageDetailsResponse = await axios.get(`https://api.dataimpulse.com/reseller/sub-user/usage-stat/detail?subuser_id=${user.subuserId}&period=month`, {
+            headers: {
+                'Authorization': `Bearer ${headerToken}`
+            }
+        });
+
+        usageDetails = usageDetailsResponse.data
+        console.log("usage Details:", usageDetails)
+
+    } catch (error) {
+        console.log("sub-user update error: " + error.message)
+        throw new ApiError(500, "Third Party Server Error getting usage details")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, usageDetails, "Usage stats details successfull")
+    )
+})
+
+//8. usage-stat - Details 
+const getUsageStat = asyncHandler(async () => {
+
+})
+
 
 export {
     signUp,
@@ -242,4 +348,7 @@ export {
     logout,
     refreshAccessToken,
     changeCurrentPassword,
+    updateSubuser,
+    usageStatDetails,
+    getUsageStat,
 }
